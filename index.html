@@ -208,6 +208,7 @@
   function fillNotionJsonTextInput(clipboardData) {
     const notionJson = getNotionJson(clipboardData);
     if (notionJson == null) {
+      notionJsonTextInput.value = "";
       return false;
     }
     notionJsonTextInput.value = getNotionJson(clipboardData);
