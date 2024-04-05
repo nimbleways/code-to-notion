@@ -46,6 +46,52 @@ function parseGithubHtml(htmlString) {
   return codeLines;
 }
 
+function extractFileExtensionFromHtml(htmlString) {
+    const filenamePattern = /<button data-path="([^"]+)"/;
+    const filenameMatch = htmlString.match(filenamePattern);
+
+    if (filenameMatch) {
+        const filename = filenameMatch[1];
+        const filenameExtensionPattern = /\.(\w+)$/;
+        const extensionMatch = filename.match(filenameExtensionPattern);
+        if (extensionMatch) {
+            return extensionMatch[1].toLowerCase();
+        }
+    }
+
+    return null;
+}
+
+
+function mapExtensionToLanguage(extension) {
+    const extensionToLanguageMap = {
+        js: "JavaScript",
+        py: "Python",
+        ts: "TypeScript",
+        java: "Java",
+        rb: "Ruby",
+        cpp: "C++",
+        cs: "C#",
+        go: "Go",
+        php: "PHP",
+        swift: "Swift",
+        rs: "Rust",
+        sh: "Bash",
+        pl: "Perl",
+        lua: "Lua",
+        html: "HTML",
+        css: "CSS",
+        scss: "SCSS",
+        sass: "Sass",
+        sql: "SQL",
+        json: "JSON",
+        xml: "XML",
+        yaml: "YAML",
+        md: "Markdown",
+    };
+    return extensionToLanguageMap[extension] || "TypeScript";
+}
+
 function createNotionTitleProperty(htmlString) {
   const linesWithDiffFlag = parseGithubHtml(htmlString);
   const notionTitle = [];
@@ -78,28 +124,31 @@ function getNotionJson(clipboardData) {
   }
   const uuid = self.crypto.randomUUID();
 
+  const extension = extractFileExtensionFromHtml(htmlString);
+  const language = mapExtensionToLanguage(extension);
+
   const notionJsonTemplate = {
-    blocks: [
-      {
-        blockId: uuid,
-        blockSubtree: {
-          __version__: 3,
-          block: {
-            [uuid]: {
-              value: {
-                id: uuid,
-                version: 55,
-                type: "code",
-                properties: {
-                  title: title,
-                  language: [["TypeScript"]],
-                },
+      blocks: [
+          {
+              blockId: uuid,
+              blockSubtree: {
+                  __version__: 3,
+                  block: {
+                      [uuid]: {
+                          value: {
+                              id: uuid,
+                              version: 55,
+                              type: "code",
+                              properties: {
+                                  title: title,
+                                  language: [[language]],
+                              },
+                          },
+                      },
+                  },
               },
-            },
           },
-        },
-      },
-    ],
+      ],
   };
 
   return JSON.stringify(notionJsonTemplate);
