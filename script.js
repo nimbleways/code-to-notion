@@ -50,52 +50,54 @@ function extractFileNameFromHtml(htmlString) {
     const filenamePattern = /<button data-path="([^"]+)"/;
     const filenameMatch = htmlString.match(filenamePattern);
     if (filenameMatch) {
-        return filenameMatch[1].toLowerCase();
+        return filenameMatch[1];
     }
     return null;
 }
 
 
 function mapFileNameToLanguage(filename) {
+
+    if (!filename) {
+        return "Plain Text";
+    }
+
     const languageToFilenameRegex = {
-        JavaScript: /\.(jsx?)$/,
-        TypeScript: /\.(tsx?)$/,
-        Python: /\.(py)$/,
-        Java: /\.(java)$/,
-        Ruby: /\.(rb)$/,
-        Cpp: /\.(cpp)$/,
-        CSharp: /\.(cs)$/,
-        Go: /\.(go)$/,
-        PHP: /\.(php)$/,
-        Swift: /\.(swift)$/,
-        Rust: /\.(rs)$/,
         Bash: /\.(sh)$/,
-        Perl: /\.(pl)$/,
-        Lua: /\.(lua)$/,
-        HTML: /\.(html?)$/,
         CSS: /\.(css)$/,
-        SCSS: /\.(scss)$/,
-        Sass: /\.(sass)$/,
-        SQL: /\.(sql)$/,
+        CSharp: /\.(cs)$/,
+        Cpp: /\.(cpp)$/,
+        Docker: /(?:dockerfile)$/,
+        Go: /\.(go)$/,
+        Groovy: /\.(groovy)$/,
+        HTML: /\.(html?)$/,
         JSON: /\.(json)$/,
+        Java: /\.(java)$/,
+        JavaScript: /\.(jsx?)$/,
+        Kotlin: /\.(kt)$/,
+        Lua: /\.(lua)$/,
+        Makefile: /(?:Makefile)$/,
+        Markdown: /\.(md)$/,
+        PHP: /\.(php)$/,
+        Perl: /\.(pl)$/,
+        Python: /\.(py)$/,
+        Ruby: /\.(rb)$/,
+        Rust: /\.(rs)$/,
+        SCSS: /\.(scss)$/,
+        SQL: /\.(sql)$/,
+        Sass: /\.(sass)$/,
+        Swift: /\.(swift)$/,
+        TOML: /\.(toml)$/,
+        TypeScript: /\.(tsx?)$/,
         XML: /\.(xml|csproj)$/,
         YAML: /\.(yaml|yml)$/,
-        Markdown: /\.(md)$/,
-        Docker: /(?:dockerfile)$/,
-        Groovy: /\.(groovy)$/,
-        Kotlin: /\.(kt)$/,
-        Makefile: /(?:Makefile)$/,
-        TOML: /\.(toml)$/,
     };
 
-    filename = filename.toLowerCase();
     for (const [language, regex] of Object.entries(languageToFilenameRegex)) {
-        if (regex.test(filename)) {
+        if (regex.test(filename.toLowerCase())) {
             return language;
         }
     }
-
-    return "Plain Text";
 }
 
 function createNotionTitleProperty(htmlString) {
@@ -130,8 +132,8 @@ function getNotionJson(clipboardData) {
   }
   const uuid = self.crypto.randomUUID();
 
-  const extension = extractFileNameFromHtml(htmlString);
-  const language = mapFileNameToLanguage(extension);
+  const filename = extractFileNameFromHtml(htmlString);
+  const language = mapFileNameToLanguage(filename);
 
   const notionJsonTemplate = {
       blocks: [
