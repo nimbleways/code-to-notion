@@ -46,7 +46,7 @@ function parseGithubHtml(htmlString) {
   return codeLines;
 }
 
-function extractFileExtensionFromHtml(htmlString) {
+function extractFileNameFromHtml(htmlString) {
     const filenamePattern = /<button data-path="([^"]+)"/;
     const filenameMatch = htmlString.match(filenamePattern);
     if (filenameMatch) {
@@ -56,8 +56,8 @@ function extractFileExtensionFromHtml(htmlString) {
 }
 
 
-function mapExtensionToLanguage(extension) {
-    const languageToExtensionRegex = {
+function mapFileNameToLanguage(filename) {
+    const languageToFilenameRegex = {
         JavaScript: /\.(jsx?)$/,
         TypeScript: /\.(tsx?)$/,
         Python: /\.(py)$/,
@@ -88,15 +88,14 @@ function mapExtensionToLanguage(extension) {
         TOML: /\.(toml)$/,
     };
 
-    extension = extension.toLowerCase();
-    console.log("*** "+extension);
-    for (const [language, regex] of Object.entries(languageToExtensionRegex)) {
-        if (regex.test(extension)) {
+    filename = filename.toLowerCase();
+    for (const [language, regex] of Object.entries(languageToFilenameRegex)) {
+        if (regex.test(filename)) {
             return language;
         }
     }
 
-    return "TypeScript";
+    return "Plain Text";
 }
 
 function createNotionTitleProperty(htmlString) {
@@ -131,8 +130,8 @@ function getNotionJson(clipboardData) {
   }
   const uuid = self.crypto.randomUUID();
 
-  const extension = extractFileExtensionFromHtml(htmlString);
-  const language = mapExtensionToLanguage(extension);
+  const extension = extractFileNameFromHtml(htmlString);
+  const language = mapFileNameToLanguage(extension);
 
   const notionJsonTemplate = {
       blocks: [
