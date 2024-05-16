@@ -189,10 +189,10 @@ function selectText(htmlElement) {
 function showToast(message, duration = 8000) {
   const toast = document.getElementById('toast');
   toast.innerText = message;
-  toast.classList.remove('hidden');
+  toast.classList.remove('transparent');
 
   setTimeout(() => {
-    toast.classList.add('hidden');
+    toast.classList.add('transparent');
   }, duration);
 }
 
