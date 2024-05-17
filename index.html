@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GitHub to Notion converter</title>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-K3LF7F8VTN"></script>
+<script src="https://unpkg.com/diff@5.2.0"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -33,7 +34,7 @@
         <textarea id="code-before"></textarea>
         <h2>Paste your code after modification</h2>
         <textarea id="code-after"></textarea>
-        <button id="get-diff-btn">Get diff</button>
+        <button id="get-diff-btn">Get Notion Block</button>
       </div>
     </div>
 

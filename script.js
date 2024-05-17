@@ -1,5 +1,6 @@
 const notionJsonTextInput = document.getElementById("notionMimeType");
 const isPlainTextCheckbox = document.getElementById("is-plain-text");
+const getDiffButton = document.getElementById("get-diff-btn");
 
 function printOriginal(clipboardData) {
   const clipboardContentElement = document.getElementById("original");
@@ -124,6 +125,34 @@ function createNotionTitleProperty(htmlString) {
   return linesWithDiffFlagToNotionTitle(linesWithDiffFlag);
 }
 
+function createNotionTitleFromPlainText(codeBefore, codeAfter) {
+  const diffLines = Diff.diffLines(codeBefore, codeAfter);
+  let codeLines = [];
+
+  let lastFlag = "none";
+
+  diffLines.forEach((diffLine) => {
+    // Check if this line represents addition, deletion, or none
+    if (diffLine.added) {
+      lastFlag = "added";
+    } else if (diffLine.removed) {
+      lastFlag = "removed";
+    } else {
+      lastFlag = "none";
+    }
+
+    const lines = diffLine.value.split('\n');
+    codeLines = codeLines.concat(
+      lines.map( line => ({
+        line,
+        flag: lastFlag,
+      }))
+    );
+  });
+
+  return linesWithDiffFlagToNotionTitle(codeLines);
+}
+
 function createNotionJson(title, language) {
   const uuid = self.crypto.randomUUID();
   const notionJsonTemplate = {
@@ -171,13 +200,33 @@ function getNotionJsonFromClipboard(clipboardData) {
   return createNotionJson(title, language);
 }
 
-function fillNotionJsonTextInput(clipboardData) {
+function getNotionJsonFromPlainText(codeBefore, codeAfter) {
+  const title = createNotionTitleFromPlainText(codeBefore, codeAfter);
+  if (title.length == 0) {
+    return null;
+  }
+
+  return createNotionJson(title);
+}
+
+function fillNotionJsonTextInputFromClipboard(clipboardData) {
   const notionJson = getNotionJsonFromClipboard(clipboardData);
   if (notionJson == null) {
     notionJsonTextInput.value = "";
     return false;
   }
   notionJsonTextInput.value = getNotionJsonFromClipboard(clipboardData);
+  selectText(notionJsonTextInput);
+  return true;
+}
+
+function fillNotionJsonTextInputFromPlainText(codeBefore, codeAfter) {
+  const notionJson = getNotionJsonFromPlainText(codeBefore, codeAfter);
+  if (notionJson == null) {
+    notionJsonTextInput.value = "";
+    return false;
+  }
+  notionJsonTextInput.value = notionJson;
   selectText(notionJsonTextInput);
   return true;
 }
@@ -210,7 +259,7 @@ document.addEventListener("paste", function (e) {
     return;
   }
   printOriginal(e.clipboardData);
-  if (!fillNotionJsonTextInput(e.clipboardData)) {
+  if (!fillNotionJsonTextInputFromClipboard(e.clipboardData)) {
     return;
   }
   document.execCommand("copy");
@@ -227,6 +276,17 @@ document.addEventListener("copy", function (event) {
     notionJsonTextInput.value,
   );
   event.preventDefault();
+});
+
+getDiffButton.addEventListener('click', function() {
+  const codeBeforeInput = document.getElementById("code-before");
+  const codeAfterInput = document.getElementById("code-after");
+
+  if (!fillNotionJsonTextInputFromPlainText(codeBeforeInput.value, codeAfterInput.value)) {
+    return;
+  }
+  document.execCommand("copy");
+  showToast("Notion block is copied! Just paste it in a notion page");
 });
 
 isPlainTextCheckbox.addEventListener("change", function (event) {
