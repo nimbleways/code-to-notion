@@ -100,8 +100,7 @@ function mapFileNameToLanguage(filename) {
     }
 }
 
-function createNotionTitleProperty(htmlString) {
-  const linesWithDiffFlag = parseGithubHtml(htmlString);
+function linesWithDiffFlagToNotionTitle(linesWithDiffFlag) {
   const notionTitle = [];
   for (const lineWithDiffFlag of linesWithDiffFlag) {
     const notionLine = [];
@@ -119,7 +118,41 @@ function createNotionTitleProperty(htmlString) {
   return notionTitle;
 }
 
-function getNotionJson(clipboardData) {
+function createNotionTitleProperty(htmlString) {
+  const linesWithDiffFlag = parseGithubHtml(htmlString);
+  return linesWithDiffFlagToNotionTitle(linesWithDiffFlag);
+}
+
+function createNotionJson(title, language) {
+  const uuid = self.crypto.randomUUID();
+  const notionJsonTemplate = {
+    blocks: [
+      {
+        blockId: uuid,
+        blockSubtree: {
+          __version__: 3,
+          block: {
+            [uuid]: {
+              value: {
+                id: uuid,
+                version: 55,
+                type: "code",
+                properties: {
+                  title: title,
+                  language: [[language]],
+                },
+              },
+            },
+          },
+        },
+      },
+    ],
+  };
+
+  return JSON.stringify(notionJsonTemplate);
+}
+
+function getNotionJsonFromClipboard(clipboardData) {
   const htmlString = clipboardData.getData("text/html");
 
   if (htmlString === undefined) {
@@ -130,45 +163,20 @@ function getNotionJson(clipboardData) {
   if (title.length == 0) {
     return null;
   }
-  const uuid = self.crypto.randomUUID();
-
+  
   const filename = extractFileNameFromHtml(htmlString);
   const language = mapFileNameToLanguage(filename);
 
-  const notionJsonTemplate = {
-      blocks: [
-          {
-              blockId: uuid,
-              blockSubtree: {
-                  __version__: 3,
-                  block: {
-                      [uuid]: {
-                          value: {
-                              id: uuid,
-                              version: 55,
-                              type: "code",
-                              properties: {
-                                  title: title,
-                                  language: [[language]],
-                              },
-                          },
-                      },
-                  },
-              },
-          },
-      ],
-  };
-
-  return JSON.stringify(notionJsonTemplate);
+  return createNotionJson(title, language);
 }
 
 function fillNotionJsonTextInput(clipboardData) {
-  const notionJson = getNotionJson(clipboardData);
+  const notionJson = getNotionJsonFromClipboard(clipboardData);
   if (notionJson == null) {
     notionJsonTextInput.value = "";
     return false;
   }
-  notionJsonTextInput.value = getNotionJson(clipboardData);
+  notionJsonTextInput.value = getNotionJsonFromClipboard(clipboardData);
   selectText(notionJsonTextInput);
   return true;
 }
