@@ -1,4 +1,5 @@
 const notionJsonTextInput = document.getElementById("notionMimeType");
+const isPlainTextCheckbox = document.getElementById("is-plain-text");
 
 function printOriginal(clipboardData) {
   const clipboardContentElement = document.getElementById("original");
@@ -205,7 +206,7 @@ function showToast(message, duration = 8000) {
 }
 
 document.addEventListener("paste", function (e) {
-  if (!e.clipboardData || !e.clipboardData.getData || !e.clipboardData.types) {
+  if (isPlainTextCheckbox.checked || !e.clipboardData || !e.clipboardData.getData || !e.clipboardData.types) {
     return;
   }
   printOriginal(e.clipboardData);
@@ -227,3 +228,11 @@ document.addEventListener("copy", function (event) {
   );
   event.preventDefault();
 });
+
+isPlainTextCheckbox.addEventListener("change", function (event) {
+  const githubInput = document.getElementById("github-container");
+  const plainTextInput = document.getElementById("plain-text-container");
+
+  githubInput.classList.toggle("hidden", event.target.checked)
+  plainTextInput.classList.toggle("hidden", !event.target.checked)
+} )

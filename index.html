@@ -18,9 +18,25 @@
 <body>
 <div class="container">
     <div class="column">
-      <h2>Paste your GitHub code anywhere using your keyboard</h2>
-      <div id="original"></div>
+      <label>
+        <input type="checkbox" id="is-plain-text">
+        Use plain text
+      </label>
+
+      <div id="github-container">
+        <h2>Paste your GitHub code anywhere using your keyboard</h2>
+        <div id="original"></div>
+      </div>
+
+      <div id="plain-text-container" class="hidden">
+        <h2>Paste your code before modification</h2>
+        <textarea id="code-before"></textarea>
+        <h2>Paste your code after modification</h2>
+        <textarea id="code-after"></textarea>
+        <button id="get-diff-btn">Get diff</button>
+      </div>
     </div>
+
     <div class="column">
         <label for="notionMimeType">Notion Mime Type:</label>
         <textarea id="notionMimeType"></textarea>
