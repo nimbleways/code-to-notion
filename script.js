@@ -209,19 +209,7 @@ function getNotionJsonFromPlainText(codeBefore, codeAfter) {
   return createNotionJson(title);
 }
 
-function fillNotionJsonTextInputFromClipboard(clipboardData) {
-  const notionJson = getNotionJsonFromClipboard(clipboardData);
-  if (notionJson == null) {
-    notionJsonTextInput.value = "";
-    return false;
-  }
-  notionJsonTextInput.value = getNotionJsonFromClipboard(clipboardData);
-  selectText(notionJsonTextInput);
-  return true;
-}
-
-function fillNotionJsonTextInputFromPlainText(codeBefore, codeAfter) {
-  const notionJson = getNotionJsonFromPlainText(codeBefore, codeAfter);
+function fillNotionJsonTextInput(notionJson) {
   if (notionJson == null) {
     notionJsonTextInput.value = "";
     return false;
@@ -229,6 +217,16 @@ function fillNotionJsonTextInputFromPlainText(codeBefore, codeAfter) {
   notionJsonTextInput.value = notionJson;
   selectText(notionJsonTextInput);
   return true;
+}
+
+function fillNotionJsonTextInputFromClipboard(clipboardData) {
+  const notionJson = getNotionJsonFromClipboard(clipboardData);
+  return fillNotionJsonTextInput(notionJson);
+}
+
+function fillNotionJsonTextInputFromPlainText(codeBefore, codeAfter) {
+  const notionJson = getNotionJsonFromPlainText(codeBefore, codeAfter);
+  return fillNotionJsonTextInput(notionJson);
 }
 
 function selectText(htmlElement) {
