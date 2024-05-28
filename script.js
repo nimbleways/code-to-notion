@@ -15,7 +15,7 @@ function printOriginal(clipboardData) {
   }
 }
 
-function parseGithubHtml(htmlString) {
+function getDiffLinesFromGithubHtml(htmlString) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlString, "text/html");
 
@@ -191,7 +191,7 @@ function fillNotionJsonTextInputFromClipboard(clipboardData) {
     return null;
   }
 
-  const diffLines = parseGithubHtml(htmlString);
+  const diffLines = getDiffLinesFromGithubHtml(htmlString);
   const title = diffLinesToNotionTitle(diffLines);
   if (title.length == 0) {
     return null;
@@ -257,4 +257,3 @@ function togglePlainText(checkbox) {
   githubInput.classList.toggle("hidden", checkbox.checked)
   plainTextInput.classList.toggle("hidden", !checkbox.checked)
 }
-
