@@ -51,12 +51,7 @@
     if (isPlainTextCheckbox.checked || !e.clipboardData || !e.clipboardData.getData || !e.clipboardData.types) {
       return;
     }
-    printOriginal(e.clipboardData);
-    if (!fillNotionJsonTextInputFromClipboard(e.clipboardData)) {
-      return;
-    }
-    document.execCommand("copy");
-    showToast("Notion block is copied! Just paste it in a notion page");
+    generateDiffFromFromClipboard(e.clipboardData);
     e.preventDefault();
   });
 

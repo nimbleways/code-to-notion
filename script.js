@@ -250,6 +250,15 @@ function generateDiffFromPlainText() {
   showToast("Notion block is copied! Just paste it in a notion page");
 };
 
+function generateDiffFromFromClipboard(clipboardData) {
+  printOriginal(clipboardData);
+  if (!fillNotionJsonTextInputFromClipboard(clipboardData)) {
+    return;
+  }
+  document.execCommand("copy");
+  showToast("Notion block is copied! Just paste it in a notion page");
+}
+
 function togglePlainText(checkbox) {
   const githubInput = document.getElementById("github-container");
   const plainTextInput = document.getElementById("plain-text-container");
