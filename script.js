@@ -118,11 +118,6 @@ function linesWithDiffFlagToNotionTitle(linesWithDiffFlag) {
   return notionTitle;
 }
 
-function createNotionTitleProperty(htmlString) {
-  const linesWithDiffFlag = parseGithubHtml(htmlString);
-  return linesWithDiffFlagToNotionTitle(linesWithDiffFlag);
-}
-
 function getDiffLinesFromPlainText(codeBefore, codeAfter) {
   const diffLines = Diff.diffLines(codeBefore, codeAfter);
   let codeLines = [];
@@ -180,24 +175,6 @@ function createNotionJson(title, language) {
   return JSON.stringify(notionJsonTemplate);
 }
 
-function getNotionJsonFromClipboard(clipboardData) {
-  const htmlString = clipboardData.getData("text/html");
-
-  if (htmlString === undefined) {
-    return null;
-  }
-
-  const title = createNotionTitleProperty(htmlString);
-  if (title.length == 0) {
-    return null;
-  }
-  
-  const filename = extractFileNameFromHtml(htmlString);
-  const language = mapFileNameToLanguage(filename);
-
-  return createNotionJson(title, language);
-}
-
 function fillNotionJsonTextInput(notionJson) {
   if (notionJson == null) {
     notionJsonTextInput.value = "";
@@ -209,14 +186,27 @@ function fillNotionJsonTextInput(notionJson) {
 }
 
 function fillNotionJsonTextInputFromClipboard(clipboardData) {
-  const notionJson = getNotionJsonFromClipboard(clipboardData);
+  const htmlString = clipboardData.getData("text/html");
+  if (htmlString === undefined) {
+    return null;
+  }
+
+  const diffLines = parseGithubHtml(htmlString);
+  const title = linesWithDiffFlagToNotionTitle(diffLines);
+  if (title.length == 0) {
+    return null;
+  }
+  
+  const filename = extractFileNameFromHtml(htmlString);
+  const language = mapFileNameToLanguage(filename);
+  const notionJson = createNotionJson(title, language);
+
   return fillNotionJsonTextInput(notionJson);
 }
 
 function fillNotionJsonTextInputFromPlainText(codeBefore, codeAfter) {
   const diffLines = getDiffLinesFromPlainText(codeBefore, codeAfter);
   const title = linesWithDiffFlagToNotionTitle(diffLines);
-
   if (title.length == 0) {
     return null;
   }
