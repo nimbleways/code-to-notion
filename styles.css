@@ -71,7 +71,11 @@ body {
     transition: opacity 0.5s ease;
   }
 
-  .hidden {
+  .transparent {
     opacity: 0;
     pointer-events: none;
+  }
+
+  .hidden {
+    display: none;
   }

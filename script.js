@@ -15,7 +15,7 @@ function printOriginal(clipboardData) {
   }
 }
 
-function parseGithubHtml(htmlString) {
+function getDiffLinesFromGithubHtml(htmlString) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlString, "text/html");
 
@@ -100,10 +100,9 @@ function mapFileNameToLanguage(filename) {
     }
 }
 
-function createNotionTitleProperty(htmlString) {
-  const linesWithDiffFlag = parseGithubHtml(htmlString);
+function diffLinesToNotionTitle(diffLines) {
   const notionTitle = [];
-  for (const lineWithDiffFlag of linesWithDiffFlag) {
+  for (const lineWithDiffFlag of diffLines) {
     const notionLine = [];
     let prefix;
     if (lineWithDiffFlag.flag === "added") prefix = "+\t";
@@ -119,58 +118,105 @@ function createNotionTitleProperty(htmlString) {
   return notionTitle;
 }
 
-function getNotionJson(clipboardData) {
-  const htmlString = clipboardData.getData("text/html");
+function getDiffLinesFromPlainText(codeBefore, codeAfter) {
+  const diffLines = Diff.diffLines(codeBefore, codeAfter);
+  let codeLines = [];
 
-  if (htmlString === undefined) {
-    return null;
-  }
+  let lastFlag = "none";
 
-  const title = createNotionTitleProperty(htmlString);
-  if (title.length == 0) {
-    return null;
-  }
+  diffLines.forEach((diffLine) => {
+    // Check if this line represents addition, deletion, or none
+    if (diffLine.added) {
+      lastFlag = "added";
+    } else if (diffLine.removed) {
+      lastFlag = "removed";
+    } else {
+      lastFlag = "none";
+    }
+
+    const lines = diffLine.value.split('\n');
+    if ( lines[lines.length-1] === '' ){
+      lines.pop();
+    }
+    codeLines = codeLines.concat(
+      lines.map( line => ({
+        line,
+        flag: lastFlag,
+      }))
+    );
+  });
+
+  return codeLines;
+}
+
+function createNotionJson(title, language) {
   const uuid = self.crypto.randomUUID();
-
-  const filename = extractFileNameFromHtml(htmlString);
-  const language = mapFileNameToLanguage(filename);
-
   const notionJsonTemplate = {
-      blocks: [
-          {
-              blockId: uuid,
-              blockSubtree: {
-                  __version__: 3,
-                  block: {
-                      [uuid]: {
-                          value: {
-                              id: uuid,
-                              version: 55,
-                              type: "code",
-                              properties: {
-                                  title: title,
-                                  language: [[language]],
-                              },
-                          },
-                      },
-                  },
+    blocks: [
+      {
+        blockId: uuid,
+        blockSubtree: {
+          __version__: 3,
+          block: {
+            [uuid]: {
+              value: {
+                id: uuid,
+                version: 55,
+                type: "code",
+                properties: {
+                  title: title,
+                  language: [[language]],
+                },
               },
+            },
           },
-      ],
+        },
+      },
+    ],
   };
 
   return JSON.stringify(notionJsonTemplate);
 }
 
-function fillNotionJsonTextInput(clipboardData) {
-  const notionJson = getNotionJson(clipboardData);
+function fillNotionJsonTextInput(notionJson) {
   if (notionJson == null) {
     notionJsonTextInput.value = "";
     return false;
   }
-  notionJsonTextInput.value = getNotionJson(clipboardData);
+  notionJsonTextInput.value = notionJson;
   selectText(notionJsonTextInput);
   return true;
+}
+
+function fillNotionJsonTextInputFromClipboard(clipboardData) {
+  const htmlString = clipboardData.getData("text/html");
+  if (htmlString === undefined) {
+    return null;
+  }
+
+  const diffLines = getDiffLinesFromGithubHtml(htmlString);
+  const title = diffLinesToNotionTitle(diffLines);
+  if (title.length == 0) {
+    return null;
+  }
+  
+  const filename = extractFileNameFromHtml(htmlString);
+  const language = mapFileNameToLanguage(filename);
+  const notionJson = createNotionJson(title, language);
+
+  return fillNotionJsonTextInput(notionJson);
+}
+
+function fillNotionJsonTextInputFromPlainText(codeBefore, codeAfter) {
+  const diffLines = getDiffLinesFromPlainText(codeBefore, codeAfter);
+  const title = diffLinesToNotionTitle(diffLines);
+  if (title.length == 0) {
+    return null;
+  }
+
+  const notionJson = createNotionJson(title, "Plain Text");
+
+  return fillNotionJsonTextInput(notionJson);
 }
 
 function selectText(htmlElement) {
@@ -189,33 +235,37 @@ function selectText(htmlElement) {
 function showToast(message, duration = 8000) {
   const toast = document.getElementById('toast');
   toast.innerText = message;
-  toast.classList.remove('hidden');
+  toast.classList.remove('transparent');
 
   setTimeout(() => {
-    toast.classList.add('hidden');
+    toast.classList.add('transparent');
   }, duration);
 }
 
-document.addEventListener("paste", function (e) {
-  if (!e.clipboardData || !e.clipboardData.getData || !e.clipboardData.types) {
-    return;
-  }
-  printOriginal(e.clipboardData);
-  if (!fillNotionJsonTextInput(e.clipboardData)) {
+function generateDiffFromPlainText() {
+  const codeBeforeInput = document.getElementById("code-before");
+  const codeAfterInput = document.getElementById("code-after");
+
+  if (!fillNotionJsonTextInputFromPlainText(codeBeforeInput.value, codeAfterInput.value)) {
     return;
   }
   document.execCommand("copy");
   showToast("Notion block is copied! Just paste it in a notion page");
-  e.preventDefault();
-});
+};
 
-document.addEventListener("copy", function (event) {
-  if (event.target !== notionJsonTextInput) {
+function generateDiffFromFromClipboard(clipboardData) {
+  printOriginal(clipboardData);
+  if (!fillNotionJsonTextInputFromClipboard(clipboardData)) {
     return;
   }
-  event.clipboardData.setData(
-    "text/_notion-blocks-v3-production",
-    notionJsonTextInput.value,
-  );
-  event.preventDefault();
-});
+  document.execCommand("copy");
+  showToast("Notion block is copied! Just paste it in a notion page");
+}
+
+function togglePlainText(checkbox) {
+  const githubInput = document.getElementById("github-container");
+  const plainTextInput = document.getElementById("plain-text-container");
+
+  githubInput.classList.toggle("hidden", checkbox.checked)
+  plainTextInput.classList.toggle("hidden", !checkbox.checked)
+}

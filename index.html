@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GitHub to Notion converter</title>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-K3LF7F8VTN"></script>
+<script src="https://unpkg.com/diff@5.2.0"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -18,15 +19,52 @@
 <body>
 <div class="container">
     <div class="column">
-      <h2>Paste your GitHub code anywhere using your keyboard</h2>
-      <div id="original"></div>
+      <label>
+        <input type="checkbox" id="is-plain-text" onchange="togglePlainText(this)">
+        Use plain text
+      </label>
+
+      <div id="github-container">
+        <h2>Paste your GitHub code anywhere using your keyboard</h2>
+        <div id="original"></div>
+      </div>
+
+      <div id="plain-text-container" class="hidden">
+        <h2>Paste your code before modification</h2>
+        <textarea id="code-before"></textarea>
+        <h2>Paste your code after modification</h2>
+        <textarea id="code-after"></textarea>
+        <button onclick="generateDiffFromPlainText()">Get Notion Block</button>
+      </div>
     </div>
+
     <div class="column">
         <label for="notionMimeType">Notion Mime Type:</label>
         <textarea id="notionMimeType"></textarea>
     </div>
 </div>
-<div id="toast" class="hidden"></div>
+<div id="toast" class="transparent"></div>
 <script src="script.js"></script>
+<script>
+  document.addEventListener("paste", function (e) {
+    const isPlainTextCheckbox = document.getElementById("is-plain-text");
+    if (isPlainTextCheckbox.checked || !e.clipboardData || !e.clipboardData.getData || !e.clipboardData.types) {
+      return;
+    }
+    generateDiffFromFromClipboard(e.clipboardData);
+    e.preventDefault();
+  });
+
+  document.addEventListener("copy", function (event) {
+    if (event.target !== notionJsonTextInput) {
+      return;
+    }
+    event.clipboardData.setData(
+      "text/_notion-blocks-v3-production",
+      notionJsonTextInput.value,
+    );
+    event.preventDefault();
+  });
+</script>
 </body>
 </html>
