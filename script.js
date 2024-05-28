@@ -123,7 +123,7 @@ function createNotionTitleProperty(htmlString) {
   return linesWithDiffFlagToNotionTitle(linesWithDiffFlag);
 }
 
-function createNotionTitleFromPlainText(codeBefore, codeAfter) {
+function getDiffLinesFromPlainText(codeBefore, codeAfter) {
   const diffLines = Diff.diffLines(codeBefore, codeAfter);
   let codeLines = [];
 
@@ -148,7 +148,7 @@ function createNotionTitleFromPlainText(codeBefore, codeAfter) {
     );
   });
 
-  return linesWithDiffFlagToNotionTitle(codeLines);
+  return codeLines;
 }
 
 function createNotionJson(title, language) {
@@ -198,15 +198,6 @@ function getNotionJsonFromClipboard(clipboardData) {
   return createNotionJson(title, language);
 }
 
-function getNotionJsonFromPlainText(codeBefore, codeAfter) {
-  const title = createNotionTitleFromPlainText(codeBefore, codeAfter);
-  if (title.length == 0) {
-    return null;
-  }
-
-  return createNotionJson(title);
-}
-
 function fillNotionJsonTextInput(notionJson) {
   if (notionJson == null) {
     notionJsonTextInput.value = "";
@@ -223,7 +214,15 @@ function fillNotionJsonTextInputFromClipboard(clipboardData) {
 }
 
 function fillNotionJsonTextInputFromPlainText(codeBefore, codeAfter) {
-  const notionJson = getNotionJsonFromPlainText(codeBefore, codeAfter);
+  const diffLines = getDiffLinesFromPlainText(codeBefore, codeAfter);
+  const title = linesWithDiffFlagToNotionTitle(diffLines);
+
+  if (title.length == 0) {
+    return null;
+  }
+
+  const notionJson = createNotionJson(title, "Plain Text");
+
   return fillNotionJsonTextInput(notionJson);
 }
 
