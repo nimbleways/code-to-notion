@@ -20,7 +20,7 @@
 <div class="container">
     <div class="column">
       <label>
-        <input type="checkbox" id="is-plain-text">
+        <input type="checkbox" id="is-plain-text" onchange="togglePlainText(this)">
         Use plain text
       </label>
 
@@ -34,7 +34,7 @@
         <textarea id="code-before"></textarea>
         <h2>Paste your code after modification</h2>
         <textarea id="code-after"></textarea>
-        <button id="get-diff-btn">Get Notion Block</button>
+        <button onclick="generateDiffFromPlainText()">Get Notion Block</button>
       </div>
     </div>
 
@@ -45,5 +45,31 @@
 </div>
 <div id="toast" class="transparent"></div>
 <script src="script.js"></script>
+<script>
+  document.addEventListener("paste", function (e) {
+    const isPlainTextCheckbox = document.getElementById("is-plain-text");
+    if (isPlainTextCheckbox.checked || !e.clipboardData || !e.clipboardData.getData || !e.clipboardData.types) {
+      return;
+    }
+    printOriginal(e.clipboardData);
+    if (!fillNotionJsonTextInputFromClipboard(e.clipboardData)) {
+      return;
+    }
+    document.execCommand("copy");
+    showToast("Notion block is copied! Just paste it in a notion page");
+    e.preventDefault();
+  });
+
+  document.addEventListener("copy", function (event) {
+    if (event.target !== notionJsonTextInput) {
+      return;
+    }
+    event.clipboardData.setData(
+      "text/_notion-blocks-v3-production",
+      notionJsonTextInput.value,
+    );
+    event.preventDefault();
+  });
+</script>
 </body>
 </html>

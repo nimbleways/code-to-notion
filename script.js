@@ -1,6 +1,4 @@
 const notionJsonTextInput = document.getElementById("notionMimeType");
-const isPlainTextCheckbox = document.getElementById("is-plain-text");
-const getDiffButton = document.getElementById("get-diff-btn");
 
 function printOriginal(clipboardData) {
   const clipboardContentElement = document.getElementById("original");
@@ -252,31 +250,7 @@ function showToast(message, duration = 8000) {
   }, duration);
 }
 
-document.addEventListener("paste", function (e) {
-  if (isPlainTextCheckbox.checked || !e.clipboardData || !e.clipboardData.getData || !e.clipboardData.types) {
-    return;
-  }
-  printOriginal(e.clipboardData);
-  if (!fillNotionJsonTextInputFromClipboard(e.clipboardData)) {
-    return;
-  }
-  document.execCommand("copy");
-  showToast("Notion block is copied! Just paste it in a notion page");
-  e.preventDefault();
-});
-
-document.addEventListener("copy", function (event) {
-  if (event.target !== notionJsonTextInput) {
-    return;
-  }
-  event.clipboardData.setData(
-    "text/_notion-blocks-v3-production",
-    notionJsonTextInput.value,
-  );
-  event.preventDefault();
-});
-
-getDiffButton.addEventListener('click', function() {
+function generateDiffFromPlainText() {
   const codeBeforeInput = document.getElementById("code-before");
   const codeAfterInput = document.getElementById("code-after");
 
@@ -285,12 +259,13 @@ getDiffButton.addEventListener('click', function() {
   }
   document.execCommand("copy");
   showToast("Notion block is copied! Just paste it in a notion page");
-});
+};
 
-isPlainTextCheckbox.addEventListener("change", function (event) {
+function togglePlainText(checkbox) {
   const githubInput = document.getElementById("github-container");
   const plainTextInput = document.getElementById("plain-text-container");
 
-  githubInput.classList.toggle("hidden", event.target.checked)
-  plainTextInput.classList.toggle("hidden", !event.target.checked)
-} )
+  githubInput.classList.toggle("hidden", checkbox.checked)
+  plainTextInput.classList.toggle("hidden", !checkbox.checked)
+}
+
