@@ -135,6 +135,9 @@ function getDiffLinesFromPlainText(codeBefore, codeAfter) {
     }
 
     const lines = diffLine.value.split('\n');
+    if ( lines[lines.length-1] === '' ){
+      lines.pop();
+    }
     codeLines = codeLines.concat(
       lines.map( line => ({
         line,
