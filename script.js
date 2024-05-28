@@ -100,9 +100,9 @@ function mapFileNameToLanguage(filename) {
     }
 }
 
-function linesWithDiffFlagToNotionTitle(linesWithDiffFlag) {
+function diffLinesToNotionTitle(diffLines) {
   const notionTitle = [];
-  for (const lineWithDiffFlag of linesWithDiffFlag) {
+  for (const lineWithDiffFlag of diffLines) {
     const notionLine = [];
     let prefix;
     if (lineWithDiffFlag.flag === "added") prefix = "+\t";
@@ -192,7 +192,7 @@ function fillNotionJsonTextInputFromClipboard(clipboardData) {
   }
 
   const diffLines = parseGithubHtml(htmlString);
-  const title = linesWithDiffFlagToNotionTitle(diffLines);
+  const title = diffLinesToNotionTitle(diffLines);
   if (title.length == 0) {
     return null;
   }
@@ -206,7 +206,7 @@ function fillNotionJsonTextInputFromClipboard(clipboardData) {
 
 function fillNotionJsonTextInputFromPlainText(codeBefore, codeAfter) {
   const diffLines = getDiffLinesFromPlainText(codeBefore, codeAfter);
-  const title = linesWithDiffFlagToNotionTitle(diffLines);
+  const title = diffLinesToNotionTitle(diffLines);
   if (title.length == 0) {
     return null;
   }
